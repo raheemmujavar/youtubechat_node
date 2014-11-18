@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Quantum Leap App</title>
+  <script src="/js/jquery-1.10.1.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/custom.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+</head>
+<body>
+  <div class="wrapper">
+    <div class="container chat-body">
+      <div class="row chatroom bordered">
+        <div class="col-md-3">Quantum Leap Chat</div>
+        <div class="col-md-9 chatarea">
+          <ul id="chatbox">
+          
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="push"></div>
+  </div>
+
+
+  <div class="footer">
+    <div class="container">
+      <form id="chat_form">
+        <textarea id="chat_input"></textarea>
+        <button  class="btn btn-primary" type="submit">Send</button>
+      </form>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    $(document).ready(function(){
+      var socket = io.connect();
+var uid = 'raheem';
+      socket.on('connect', function(){
+        var google_id,room;
+        while(!google_id){
+          // google_id = prompt("what is your google id?");
+          // room = prompt("enter your youtube id");
+          google_id = 'raheem@gmail.com';
+         room = 'abcdef';
+          socket.emit('room', room);
+          socket.emit('join', google_id);
+          socket.emit('urlinfo',room);
+          socket.emit('exit',google_id);
+          
+        }
+      });
+var timest = Date.now(),name1= '',yid='';
+
+      socket.on('message', function(data){
+         timest = data.timest;
+        
+       //  var timest = new Date(timestamp).format("dd-MM-yyyy hh:mm");
+        insertMessage(data.message, data.username, data.timest);
+      });
+
+
+
+      $('#chat_input').keypress(function(e){
+        if(e.keyCode == 13 && !e.shiftKey) {
+         e.preventDefault();
+         formSubmit();
+        }
+      });
+
+      var formSubmit = function(){
+        var chatInput = $('#chat_input');
+        var message = chatInput.val();
+        chatInput.val("");
+        insertMessage(message,name1,timest);
+        //alert('hi');
+        socket.emit('message', ''+message);
+      }
+
+      $('#chat_form').on('submit', function(e){
+        e.preventDefault();
+      //  alert('hi');
+        formSubmit();
+      });
+
+      $(".like").on("click",function(){
+        //$("#chat_form").hide();
+            alert('hi');   
+      });
+//alert('hi');
+
+
+      //this method does not prevent XSS!!
+      var insertMessage = function(message, name, wakt){
+        var li;
+        var datdiff = new Date(wakt);
+          var expression = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi;
+ var regex = new RegExp(expression);
+var t = message;
+
+ message = message.replace(t.match(regex),'<a href=http://'+t.match(regex)+' target="_blank"><font color="yellow">'+t.match(regex)+'</font></a>');
+
+        if (name){
+          li = '<li class="message"><span class="name">' + name + ':</span><br />' + message + '<br>'+datdiff+'<br>Spoilar&nbsp&nbsp<a href="javascript:void(0);" class="like" > Like</a> &nbsp&nbsp Comment &nbsp&nbsp Block</li> '
+        }else{
+          li = '<li class="message self">' + message + ' <br>' + datdiff +'<br><a href="javascript:void(0);" class="like" > Like</a>&nbsp&nbsp Delete &nbsp&nbsp Comment </li>'
+        }
+        $('#chatbox').append(li);
+      }
+    })
+  </script>
+<script>
+$(document).ready(function(){
+  $("a").click(function(){
+   alert('hi');
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Quantum Leap App</title>
+  <script src="/js/jquery-1.10.1.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/custom.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+</head>
+<body>
+  <div class="wrapper">
+    <div class="container chat-body">
+      <div class="row chatroom bordered">
+        <div class="col-md-3">Quantum Leap Chat</div>
+        <div class="col-md-9 chatarea">
+          <ul id="chatbox">
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="push"></div>
+  </div>
+
+
+  <div class="footer">
+    <div class="container">
+      <form id="chat_form">
+        <textarea id="chat_input"></textarea>
+        <button  class="btn btn-primary" type="submit">Send</button>
+      </form>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    $(document).ready(function(){
+      var socket = io.connect();
+
+      socket.on('connect', function(){
+        var nickname,room;
+        while(!nickname){
+          //nickname = prompt("what is your nickname?");
+          room = prompt("enter your room");
+          socket.emit('room', room);
+          //socket.emit('join', nickname);
+          
+        }
+      });
+var timest = Date.now(),name1= '',yid='';
+      socket.on('message', function(data){
+         timest = data.timest;
+         yid = data.yid;
+       //  var timest = new Date(timestamp).format("dd-MM-yyyy hh:mm");
+        insertMessage(data.message, data.nickname, data.timest, data.yid);
+      });
+
+
+
+      $('#chat_input').keypress(function(e){
+        if(e.keyCode == 13 && !e.shiftKey) {
+         e.preventDefault();
+         formSubmit();
+        }
+      });
+
+      var formSubmit = function(){
+        var chatInput = $('#chat_input');
+        var message = chatInput.val();
+        chatInput.val("");
+        insertMessage(message,name1,timest,yid);
+        socket.emit('message', ''+message);
+      }
+
+      $('#chat_form').on('submit', function(e){
+        e.preventDefault();
+        formSubmit();
+      });
+
+
+
+      //this method does not prevent XSS!!
+      var insertMessage = function(message, name, wakt, yid){
+        var li;
+        var datdiff = new Date(wakt);
+        //var dateString = new Date(wakt).format("dd-MM-yyyy hh:mm");
+        if (name){
+          li = '<li class="message"><span class="name">' + name + ':</span><br />' + message + '<br>'+datdiff+'<br>'+yid+'</li>'
+        }else{
+          li = '<li class="message self">' + message + ' <br>' + datdiff +'<br>'+yid+'</li>'
+        }
+        $('#chatbox').append(li);
+      }
+    })
+  </script>
+
+</body>
+</html>
