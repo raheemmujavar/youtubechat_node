@@ -13,9 +13,10 @@
     <div class="container chat-body">
       <div class="row chatroom bordered">
         <div class="col-md-3">Quantum Leap Chat</div>
+        <div id="roomcount">No of users watch this url : </div>
         <div class="col-md-9 chatarea">
           <ul id="chatbox">
-          
+                 
           </ul>
         </div>
       </div>
@@ -34,33 +35,40 @@
   </div>
 
   <script type="text/javascript">
+  //var db = require('./db');
     $(document).ready(function(){
       var socket = io.connect();
-var uid = 'raheemdd';
+      var uid = 'raheemdd';
+      var google_id,room;
       socket.on('connect', function(){
-        var google_id,room;
-        while(!google_id){
-          // google_id = prompt("what is your google id?");
-          // room = prompt("enter your youtube id");
-          google_id = 'raheem@gmail.com';
-         room = 'abcdef';
+          while(!google_id){
+          google_id = prompt("what is your google id?");
+           room = prompt("enter your youtube id");
+          //google_id = 'mujavar@gmail.com';
+      // room = 'xW_AsV7k42o';
           socket.emit('room', room);
           socket.emit('join', google_id);
           socket.emit('urlinfo',room);
           socket.emit('exit',google_id);
-          
-        }
+           }
+          //while loop ends here 
       });
-var timest = Date.now(),name1= '',yid='';
+      //connect socket ends here
+       var timest = Date.now(),name1= '',yid='',chat_id='';
 
-      socket.on('message', function(data){
+      //message socket starts here
+       socket.on('message', function(data){
          timest = data.timest;
-        
-       //  var timest = new Date(timestamp).format("dd-MM-yyyy hh:mm");
-        insertMessage(data.message, data.username, data.timest);
-      });
+      // insertMessage(data);
+                insertMessage(data.message, data.username, data.timest, data.chatid, data.userlike, data.likescount, data.spoiler);
+       });
+       //message socket ends here
 
-
+       //socket to find out no of users watch the same url
+       socket.on('roomcount', function(data){
+             $('#roomcount').append(data.visits);
+       });
+       //roomcount socket ends here
 
       $('#chat_input').keypress(function(e){
         if(e.keyCode == 13 && !e.shiftKey) {
@@ -73,49 +81,62 @@ var timest = Date.now(),name1= '',yid='';
         var chatInput = $('#chat_input');
         var message = chatInput.val();
         chatInput.val("");
-        insertMessage(message,name1,timest);
+        insertMessage(message,name1,timest,chat_id);
         //alert('hi');
         socket.emit('message', ''+message);
       }
 
       $('#chat_form').on('submit', function(e){
         e.preventDefault();
-      //  alert('hi');
         formSubmit();
       });
 
-      $(".like").on("click",function(){
-        //$("#chat_form").hide();
-            alert('hi');   
-      });
-//alert('hi');
-
-
       //this method does not prevent XSS!!
-      var insertMessage = function(message, name, wakt){
+      var insertMessage = function(message, name, wakt, chat_id, userlike, likescount, spoiler){
         var li;
         var datdiff = new Date(wakt);
-          var expression = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi;
- var regex = new RegExp(expression);
-var t = message;
+        var expression = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi;
+        var regex = new RegExp(expression);
+        var t = message;
+        var like;
+      
+        message = message.replace(t.match(regex),'<a href=http://'+t.match(regex)+' target="_blank"><font color="yellow">'+t.match(regex)+'</font></a>');
 
- message = message.replace(t.match(regex),'<a href=http://'+t.match(regex)+' target="_blank"><font color="yellow">'+t.match(regex)+'</font></a>');
+        if(userlike==false)
+           {
+            like = '<a href="javascript:void(0);" id=l'+chat_id+' >Like</a> '+likescount;
+         }
+        else
+          {
+             like = '<a href="javascript:void(0);" id=u'+chat_id+' >Un-Like</a> '+likescount;
+          }
 
-        if (name){
-          li = '<li class="message"><span class="name">' + name + ':</span><br />' + message + '<br>'+datdiff+'<br>Spoilar&nbsp&nbsp<a href="javascript:void(0);" class="like" > Like</a> &nbsp&nbsp Comment &nbsp&nbsp Block</li> '
-        }else{
-          li = '<li class="message self">' + message + ' <br>' + datdiff +'<br><a href="javascript:void(0);" class="like" > Like</a>&nbsp&nbsp Delete &nbsp&nbsp Comment </li>'
-        }
-        $('#chatbox').append(li);
+              if (name){
+                li = '<li class="message"><span class="name">' + name + ':</span><br />' + message + '<br>'+datdiff+'<br>'+chat_id+'<br><a href="javascript:viod(0);" id=spoiler'+chat_id+'>Spoiler('+spoiler+')</spoilar>&nbsp&nbsp'+like+' &nbsp&nbsp Comment &nbsp&nbsp<a href="javascript:void(0);" id=block'+chat_id+'> Block </a></li> '
+              }else{
+                li = '<li class="message self">' + message + ' <br>' + datdiff +'</li>'
+              }
+              $('#chatbox').append(li);
+        
+           $("#l"+chat_id).on("click",function(){
+               socket.emit('like',{like_chat_id:chat_id,like_mail_id:google_id,like_msgstatus : true});
+           });
+            $("#u"+chat_id).on("click",function(){
+               socket.emit('like',{like_chat_id:chat_id,like_mail_id:google_id,like_msgstatus : false});
+           });
+           $("#block"+chat_id).on("click",function(){
+            //alert(name);
+               socket.emit('block',{spamusr_mail_id:name,actusr_mail_id:google_id});
+           });
+           $("#spoiler"+chat_id).on("click",function(){
+            //alert(name);
+               socket.emit('spoiler',{chatid:chat_id});
+           });
+           //like socket emit ends here 
       }
+      //insertMessage function ends here 
     })
+    //ready function ends here
   </script>
-<script>
-$(document).ready(function(){
-  $("a").click(function(){
-   alert('hi');
-  });
-});
-</script>
 </body>
 </html>
