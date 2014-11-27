@@ -21,7 +21,7 @@ var settings = {
 }
 var timee = Date.now();
 var datediff = new Date(timee);
-var name = 'mujavar hi how russ';
+var name = 'mujavar hi how russds';
 
 app.get('/', function(request, response){
   response.sendfile(__dirname + settings.view_directory + '/index.html')
